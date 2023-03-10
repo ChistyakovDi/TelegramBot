@@ -1,3 +1,0 @@
-2023-03-10 16:33:39 DEBUG TelegramBot:32 - Hello
-2023-03-10 16:36:01 DEBUG TelegramBot:36 - Hello
-2023-03-10 16:36:01 ERROR TelegramBot:49 - org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException: Unable to deserialize response
