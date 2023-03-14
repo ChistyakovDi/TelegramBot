@@ -19,7 +19,6 @@ public class UpdateProducerImpl implements UpdateProducer {
     @Override
     public void produce(String rabbitQueue, Update update) {
         log.debug(update.getMessage().getText());
-        //TODO описать в конфиге json конвертер
         rabbitTemplate.convertAndSend(rabbitQueue, update);
     }
 }
