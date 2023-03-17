@@ -2,18 +2,22 @@ package com.chistyakov.service.impl;
 
 import com.chistyakov.RawDataDAO;
 import com.chistyakov.dao.AppUserDAO;
+import com.chistyakov.entity.AppDocument;
 import com.chistyakov.entity.AppUser;
 import com.chistyakov.entity.RawData;
+import com.chistyakov.exceptions.UploadFileException;
+import com.chistyakov.service.FileService;
 import com.chistyakov.service.MainService;
 import com.chistyakov.service.ProducerService;
+import com.chistyakov.service.enums.ServiceCommand;
 import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 
-import static com.chistyakov.entity.UserState.*;
-import static com.chistyakov.service.enums.ServiceCommands.*;
+import static com.chistyakov.entity.enums.UserState.*;
+import static com.chistyakov.service.enums.ServiceCommand.*;
 
 @Service
 @Log4j
@@ -22,11 +26,14 @@ public class MainServiceImpl implements MainService {
     private final RawDataDAO rawDataDAO;
     private final ProducerService producerService;
     private final AppUserDAO appUserDAO;
+    private final FileService fileService;
 
-    public MainServiceImpl(RawDataDAO rawDataDAO, ProducerService producerService, AppUserDAO appUserDAO) {
+
+    public MainServiceImpl(RawDataDAO rawDataDAO, ProducerService producerService, AppUserDAO appUserDAO, FileService fileService) {
         this.rawDataDAO = rawDataDAO;
         this.producerService = producerService;
         this.appUserDAO = appUserDAO;
+        this.fileService = fileService;
     }
 
     @Override
@@ -38,7 +45,8 @@ public class MainServiceImpl implements MainService {
         var text = update.getMessage().getText();
         var output = "";
 
-        if (CANCEL.equals(text)) {
+        var serviceCommand = ServiceCommand.fromValue(text);
+        if (CANCEL.equals(serviceCommand)) {
             output = cancelProcess(appUser);
         } else if (BASIC_STATE.equals(userState)) {
             output = processServiceCommand(appUser, text);
@@ -64,11 +72,18 @@ public class MainServiceImpl implements MainService {
             return;
         }
 
-        //TODO добавить сохранение документа (:
-        var answer = "Документ успешно загружен! Ссылка для скачивания: http://testfile.com/get-doc/555";
-        sendAnswer(answer, chatId);
-    }
+        try {
+            AppDocument doc = fileService.processDoc(update.getMessage());
+            //TODO добавить генерацию ссылки для скачивания
+            var answer = "Документ успешно загружен! Ссылка для скачивания: http://testfile.com/get-doc/555";
+            sendAnswer(answer, chatId);
 
+        } catch (UploadFileException ex) {
+            log.error(ex);
+            String error = "К сожалению, загрузка файла не удалась. Повторите попытку позже.";
+            sendAnswer(error, chatId);
+        }
+    }
     @Override
     public void processPhotoMessage(Update update) {
         saveRawData(update);
@@ -92,7 +107,7 @@ public class MainServiceImpl implements MainService {
             sendAnswer(error, chatId);
             return true;
         } else if (!BASIC_STATE.equals(userState)) {
-            var error = "Отмените текущую команда с помощью /cabcel для отправки файлов.";
+            var error = "Отмените текущую команда с помощью /cancel для отправки файлов.";
             sendAnswer(error, chatId);
             return true;
         }
@@ -107,12 +122,13 @@ public class MainServiceImpl implements MainService {
     }
 
     private String processServiceCommand(AppUser appUser, String cmd) {
-        if (REGISTRATION.equals(cmd)) {
+        var serviceCommand = ServiceCommand.fromValue(cmd);
+        if (REGISTRATION.equals(serviceCommand)) {
             //TODO добавить регистрацию
             return "Временно недоступно";
-        } else if (HELP.equals(cmd)) {
+        } else if (HELP.equals(serviceCommand)) {
             return help();
-        } else if (START.equals(cmd)) {
+        } else if (START.equals(serviceCommand)) {
             return "Приветствую! Чтобы посмотреть список доступных команд введите /help";
         } else {
             return "Неизвестная команда! Чтобы посмотреть список доступных команд введите /help";
@@ -133,7 +149,6 @@ public class MainServiceImpl implements MainService {
 
     private AppUser findOrSaveAppUser(Update update) {
         User telegramUser = update.getMessage().getFrom();
-
         AppUser persistentAppUser = appUserDAO.findAppUserByTelegramUserId(telegramUser.getId());
         if (persistentAppUser == null) {
             AppUser transientAppUser = AppUser.builder()

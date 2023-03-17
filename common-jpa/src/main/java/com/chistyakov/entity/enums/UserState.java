@@ -1,4 +1,4 @@
-package com.chistyakov.entity;
+package com.chistyakov.entity.enums;
 
 public enum UserState {
     BASIC_STATE,
