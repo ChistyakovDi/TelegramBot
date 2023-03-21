@@ -3,6 +3,7 @@ package com.chistyakov.service.impl;
 import com.chistyakov.RawDataDAO;
 import com.chistyakov.dao.AppUserDAO;
 import com.chistyakov.entity.AppDocument;
+import com.chistyakov.entity.AppPhoto;
 import com.chistyakov.entity.AppUser;
 import com.chistyakov.entity.RawData;
 import com.chistyakov.exceptions.UploadFileException;
@@ -95,9 +96,16 @@ public class MainServiceImpl implements MainService {
             return;
         }
 
-        //TODO добавить сохранение фото (:
-        var answer = "Фото успешно загружено! Ссылка для скачивания: http://testfile.com/get-photo/111";
-        sendAnswer(answer, chatId);
+        try {
+            AppPhoto photo = fileService.processPhoto(update.getMessage());
+            //TODO генерацию ссылки для скачивания фото
+            var answer = "Фото успешно загружено! Ссылка для скачивания: http://testfile.com/get-photo/111";
+            sendAnswer(answer, chatId);
+        } catch (UploadFileException ex) {
+            log.error(ex);
+            String error = "К сожалению, загрузка фото не удалась. Повторите попытку позже.";
+            sendAnswer(error, chatId);
+        }
     }
 
     private boolean isNotAllowToSendContent(Long chatId, AppUser appUser) {
