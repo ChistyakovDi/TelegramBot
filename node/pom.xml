@@ -52,6 +52,12 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.chistyakov</groupId>
+            <artifactId>common-utils</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
     </dependencies>
 
 </project>

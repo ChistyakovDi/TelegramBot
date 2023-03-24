@@ -10,6 +10,7 @@ import com.chistyakov.exceptions.UploadFileException;
 import com.chistyakov.service.FileService;
 import com.chistyakov.service.MainService;
 import com.chistyakov.service.ProducerService;
+import com.chistyakov.service.enums.LinkType;
 import com.chistyakov.service.enums.ServiceCommand;
 import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Service;
@@ -75,8 +76,8 @@ public class MainServiceImpl implements MainService {
 
         try {
             AppDocument doc = fileService.processDoc(update.getMessage());
-            //TODO добавить генерацию ссылки для скачивания
-            var answer = "Документ успешно загружен! Ссылка для скачивания: http://testfile.com/get-doc/555";
+            String link = fileService.generateLink(doc.getId(), LinkType.GET_DOC);
+            var answer = "Документ успешно загружен! Ссылка для скачивания: " + link;
             sendAnswer(answer, chatId);
 
         } catch (UploadFileException ex) {
@@ -98,8 +99,8 @@ public class MainServiceImpl implements MainService {
 
         try {
             AppPhoto photo = fileService.processPhoto(update.getMessage());
-            //TODO генерацию ссылки для скачивания фото
-            var answer = "Фото успешно загружено! Ссылка для скачивания: http://testfile.com/get-photo/111";
+            String link = fileService.generateLink(photo.getId(), LinkType.GET_PHOTO);
+            var answer = "Фото успешно загружено! Ссылка для скачивания: " + link;
             sendAnswer(answer, chatId);
         } catch (UploadFileException ex) {
             log.error(ex);
