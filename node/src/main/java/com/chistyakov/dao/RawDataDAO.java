@@ -1,4 +1,4 @@
-package com.chistyakov;
+package com.chistyakov.dao;
 
 import com.chistyakov.entity.RawData;
 import org.springframework.data.jpa.repository.JpaRepository;

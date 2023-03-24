@@ -1,6 +1,6 @@
 package com.chistyakov.service.impl;
 
-import com.chistyakov.RawDataDAO;
+import com.chistyakov.dao.RawDataDAO;
 import com.chistyakov.dao.AppUserDAO;
 import com.chistyakov.entity.AppDocument;
 import com.chistyakov.entity.AppPhoto;

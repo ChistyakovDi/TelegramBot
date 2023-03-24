@@ -1,6 +1,6 @@
 package com.chistyakov.service.impl;
 
-import com.chistyakov.RawDataDAO;
+import com.chistyakov.dao.RawDataDAO;
 import com.chistyakov.entity.RawData;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
